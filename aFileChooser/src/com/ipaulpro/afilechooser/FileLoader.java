@@ -44,15 +44,17 @@ public class FileLoader extends AsyncTaskLoader<List<File>> {
 	
 	private List<File> mData;
 	private String mPath;
+	private boolean mShowFiles;
 
-	public FileLoader(Context context, String path) {
+	public FileLoader(Context context, String path, boolean showFiles) {
 		super(context);
 		this.mPath = path;
+		this.mShowFiles = showFiles;
 	}
 
 	@Override
 	public List<File> loadInBackground() {
-		return FileUtils.getFileList(mPath);
+		return FileUtils.getFileList(mPath, mShowFiles);
 	}
 
 	@Override

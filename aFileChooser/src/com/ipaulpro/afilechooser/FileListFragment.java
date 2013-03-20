@@ -35,13 +35,13 @@ import android.widget.ListView;
  * @author paulburke (ipaulpro)
  * 
  */
-public class FileListFragment extends ListFragment implements
-		LoaderManager.LoaderCallbacks<List<File>> {
+public class FileListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<List<File>> {
 
 	private static final int LOADER_ID = 0;
 
 	private FileListAdapter mAdapter;
 	private String mPath;
+	private boolean mShowFiles;
 
 	/**
 	 * Create a new instance with the given file path.
@@ -49,10 +49,11 @@ public class FileListFragment extends ListFragment implements
 	 * @param path The absolute path of the file (directory) to display.
 	 * @return A new Fragment with the given file path. 
 	 */
-	public static FileListFragment newInstance(String path) {
+	public static FileListFragment newInstance(String path, boolean showFiles) {
 		FileListFragment fragment = new FileListFragment();
 		Bundle args = new Bundle();
 		args.putString(FileChooserActivity.PATH, path);
+		args.putBoolean(FileChooserActivity.SHOW_FILES, showFiles);
 		fragment.setArguments(args);
 
 		return fragment;
@@ -66,6 +67,7 @@ public class FileListFragment extends ListFragment implements
 		mPath = getArguments() != null ? getArguments().getString(
 				FileChooserActivity.PATH) : Environment
 				.getExternalStorageDirectory().getAbsolutePath();
+		mShowFiles = getArguments() != null ? getArguments().getBoolean(FileChooserActivity.SHOW_FILES) : true;
 	}
 
 	@Override
@@ -91,7 +93,7 @@ public class FileListFragment extends ListFragment implements
 
 	@Override
 	public Loader<List<File>> onCreateLoader(int id, Bundle args) {
-		return new FileLoader(getActivity(), mPath);
+		return new FileLoader(getActivity(), mPath, mShowFiles);
 	}
 
 	@Override

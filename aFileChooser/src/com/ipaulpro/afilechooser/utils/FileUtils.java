@@ -37,6 +37,7 @@ import android.provider.MediaStore.Audio;
 import android.provider.MediaStore.Video;
 import android.util.Log;
 
+import com.ipaulpro.afilechooser.FileChooserActivity;
 import com.ipaulpro.afilechooser.R;
 
 /**
@@ -441,7 +442,7 @@ public class FileUtils {
 
 	 * @author paulburke
 	 */
-	public static List<File> getFileList(String path) {
+	public static List<File> getFileList(String path, boolean showFiles) {
 		ArrayList<File> list = new ArrayList<File>();
 
 		// Current directory File instance
@@ -456,14 +457,16 @@ public class FileUtils {
 			for (File dir : dirs) list.add(dir);
 		}
 
-		// List file in this directory with the file filter
-		final File[] files = pathDir.listFiles(mFileFilter);
-		if (files != null) {
-			// Sort the files alphabetically
-			Arrays.sort(files, mComparator);
-			// Add each file to the File list for the list adapter
-			for (File file : files) list.add(file);
-		}		
+		if (showFiles) {
+			// List file in this directory with the file filter
+			final File[] files = pathDir.listFiles(mFileFilter);
+			if (files != null) {
+				// Sort the files alphabetically
+				Arrays.sort(files, mComparator);
+				// Add each file to the File list for the list adapter
+				for (File file : files) list.add(file);
+			}
+		}
 		
 		return list;
 	}

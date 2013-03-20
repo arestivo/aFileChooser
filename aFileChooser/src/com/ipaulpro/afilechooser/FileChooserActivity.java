@@ -30,6 +30,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentManager.BackStackEntry;
 import android.support.v4.app.FragmentManager.OnBackStackChangedListener;
 import android.support.v4.app.FragmentTransaction;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.Toast;
 
 /**
@@ -40,13 +42,17 @@ import android.widget.Toast;
  * @author paulburke (ipaulpro)
  * 
  */
-public class FileChooserActivity extends FragmentActivity implements
-		OnBackStackChangedListener {
+public class FileChooserActivity extends FragmentActivity implements OnBackStackChangedListener, OnClickListener {
 
 	public static final String PATH = "path";
-	public static final String EXTERNAL_BASE_PATH = Environment
-			.getExternalStorageDirectory().getAbsolutePath();
+	public static final String EXTERNAL_BASE_PATH = Environment.getExternalStorageDirectory().getAbsolutePath();
 
+	public static final String CHOOSER_TYPE = "CHOOSER_TYPE";
+	public static final String SHOW_FILES = "SHOW FILES";
+
+	public static final int FILE_CHOOSER = 0;
+	public static final int DIR_CHOOSER = 1;
+	
 	private FragmentManager mFragmentManager;
 	private BroadcastReceiver mStorageListener = new BroadcastReceiver() {
 		@Override
@@ -57,6 +63,8 @@ public class FileChooserActivity extends FragmentActivity implements
 	};
 	
 	private String mPath;
+	private int mChooserType = FILE_CHOOSER;
+	private boolean mShowFiles;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -66,12 +74,21 @@ public class FileChooserActivity extends FragmentActivity implements
 
 		mFragmentManager = getSupportFragmentManager();
 		mFragmentManager.addOnBackStackChangedListener(this);
+		
+		mChooserType = getIntent().getIntExtra(CHOOSER_TYPE, FILE_CHOOSER);
+		mShowFiles = getIntent().getBooleanExtra(SHOW_FILES, true);
 
 		if (savedInstanceState == null) {
 			mPath = EXTERNAL_BASE_PATH;
 			addFragment(mPath);
 		} else {
 			mPath = savedInstanceState.getString(PATH);
+		}
+		
+		if (mChooserType == FileChooserActivity.FILE_CHOOSER) {
+			findViewById(R.id.select_dir).setVisibility(View.GONE);
+		} else {
+			findViewById(R.id.select_dir).setOnClickListener(this);
 		}
 
 		setTitle(mPath);
@@ -116,9 +133,8 @@ public class FileChooserActivity extends FragmentActivity implements
 	 * @param path The absolute path of the file (directory) to display.
 	 */
 	private void addFragment(String path) {
-		FileListFragment explorerFragment = FileListFragment.newInstance(mPath);
-		mFragmentManager.beginTransaction()
-				.add(R.id.explorer_fragment, explorerFragment).commit();
+		FileListFragment explorerFragment = FileListFragment.newInstance(mPath, mShowFiles);
+		mFragmentManager.beginTransaction().add(R.id.explorer_fragment, explorerFragment).commit();
 	}
 
 	/**
@@ -128,7 +144,7 @@ public class FileChooserActivity extends FragmentActivity implements
 	 * @param path The absolute path of the file (directory) to display.
 	 */
 	private void replaceFragment(String path) {
-		FileListFragment explorerFragment = FileListFragment.newInstance(path);
+		FileListFragment explorerFragment = FileListFragment.newInstance(path, mShowFiles);
 		mFragmentManager.beginTransaction()
 				.replace(R.id.explorer_fragment, explorerFragment)
 				.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
@@ -163,7 +179,7 @@ public class FileChooserActivity extends FragmentActivity implements
 			if (file.isDirectory()) {
 				replaceFragment(mPath);
 			} else {
-				finishWithResult(file);	
+				if (mChooserType == FILE_CHOOSER) finishWithResult(file);	
 			}
 		} else {
 			Toast.makeText(FileChooserActivity.this, R.string.error_selecting_file, Toast.LENGTH_SHORT).show();
@@ -184,5 +200,12 @@ public class FileChooserActivity extends FragmentActivity implements
 	 */
 	private void unregisterStorageListener() {
 		unregisterReceiver(mStorageListener);
+	}
+
+	@Override
+	public void onClick(View view) {
+		if (view.getId() == R.id.select_dir) {
+			finishWithResult(new File(mPath));
+		}
 	}
 }
